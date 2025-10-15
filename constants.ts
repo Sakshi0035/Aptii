@@ -1,0 +1,3 @@
+
+export const SUPABASE_URL = 'https://sivorftnbldyusukcxzp.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpdm9yZnRuYmxkeXVzdWtjeHpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NDI4MTksImV4cCI6MjA3NjAxODgxOX0.tN0Sbz8LsjZ1uQo7MB5yqT0mvs07rggB95GGgmm92fo';
