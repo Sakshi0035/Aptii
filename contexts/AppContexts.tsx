@@ -11,6 +11,8 @@ interface AuthContextType {
   setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   signOut: () => void;
   loading: boolean;
+  isPasswordRecovery: boolean;
+  setIsPasswordRecovery: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,9 +22,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     const handleAuthChange = async (_event: string, session: Session | null) => {
+        if (_event === 'PASSWORD_RECOVERY') {
+            setIsPasswordRecovery(true);
+        }
+        
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
@@ -78,8 +85,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     profile,
     setProfile,
-    signOut: () => supabase.auth.signOut(),
+    signOut: () => {
+        setIsPasswordRecovery(false);
+        supabase.auth.signOut();
+    },
     loading,
+    isPasswordRecovery,
+    setIsPasswordRecovery,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

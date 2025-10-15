@@ -4,7 +4,7 @@ import { generateAptitudeQuestions } from '../services/geminiService';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AppContexts';
 import { Question } from '../types';
-import { ArrowLeftIcon, ClockIcon, LightbulbIcon } from './Icons';
+import { ArrowLeftIcon, ClockIcon, LightbulbIcon, XIcon } from './Icons';
 import DatabaseSetupInstructions from './DatabaseSetupInstructions';
 
 type TestState = 'not-started' | 'loading' | 'in-progress' | 'completed';
@@ -38,6 +38,7 @@ const Practice: React.FC = () => {
     const [showExplanation, setShowExplanation] = useState(false);
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
 
     const selectedTopic = topics.find(t => t.key === topicKey);
 
@@ -59,6 +60,22 @@ const Practice: React.FC = () => {
             handleCompletion();
         }
     }, [timeLeft, testState]);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && testState === 'in-progress' && !showConfirmEndModal) {
+                 alert('Warning: Switching tabs during a test is not recommended. The timer is still running.');
+            }
+        };
+
+        if (testState === 'in-progress') {
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+        }
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [testState, showConfirmEndModal]);
 
     const handleCompletion = async () => {
          if (testState === 'completed') return;
@@ -137,6 +154,7 @@ const Practice: React.FC = () => {
     const resetTest = () => {
         setTestState('not-started');
         setQuestions([]);
+        setShowConfirmEndModal(false);
         navigate('/practice');
     }
 
@@ -177,9 +195,26 @@ const Practice: React.FC = () => {
     if (testState === 'in-progress' && questions.length > 0) {
         const currentQuestion = questions[currentQuestionIndex];
         return (
-            <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg animate-fade-in">
+            <div className="relative p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg animate-fade-in">
+                <button onClick={() => setShowConfirmEndModal(true)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20">
+                    <XIcon />
+                </button>
+
+                {showConfirmEndModal && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-30 rounded-2xl">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center w-11/12 max-w-sm">
+                            <h3 className="text-lg font-bold mb-2">End Test?</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Are you sure? Your progress will not be saved.</p>
+                            <div className="flex justify-center gap-4">
+                                <button onClick={() => setShowConfirmEndModal(false)} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-sm font-semibold">Continue Test</button>
+                                <button onClick={resetTest} className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold">End Test</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex justify-between items-center mb-4">
-                    <button onClick={resetTest} className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
+                    <button onClick={() => setShowConfirmEndModal(true)} className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
                         <ArrowLeftIcon />
                         <span className="ml-2">Back to Topics</span>
                     </button>

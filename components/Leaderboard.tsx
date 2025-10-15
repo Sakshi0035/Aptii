@@ -19,8 +19,7 @@ const Leaderboard: React.FC = () => {
     const [fetchError, setFetchError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchLeaderboard = async () => {
-            setLoading(true);
+        const fetchLeaderboardData = async () => {
             setFetchError(null);
             
             // Fetch top 10 users
@@ -33,7 +32,6 @@ const Leaderboard: React.FC = () => {
             if (error) {
                 console.error("Error fetching leaderboard:", error.message);
                 setFetchError(error.message);
-                setLoading(false);
                 return;
             }
 
@@ -55,10 +53,33 @@ const Leaderboard: React.FC = () => {
                     setUserRank((count ?? 0) + 1);
                 }
             }
-            
-            setLoading(false);
         };
-        fetchLeaderboard();
+
+        const performInitialFetch = async () => {
+            setLoading(true);
+            await fetchLeaderboardData();
+            setLoading(false);
+        }
+
+        performInitialFetch();
+
+        // Set up real-time subscription
+        const channel = supabase
+            .channel('public:profiles:leaderboard')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'profiles' },
+                (payload) => {
+                    // Refetch data without showing the main loading spinner
+                    fetchLeaderboardData();
+                }
+            )
+            .subscribe();
+
+        // Cleanup subscription on component unmount
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [profile]);
     
     const isUserInTop10 = leaderboard.some(p => p.id === user?.id);

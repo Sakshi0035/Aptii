@@ -11,6 +11,7 @@ import Community from './components/Community';
 import AIMentor from './components/AIMentor';
 import Profile from './components/Profile';
 import Avatar from './components/Avatar';
+import PasswordReset from './components/PasswordReset';
 import { SunIcon, MoonIcon, MenuIcon, XIcon, FireIcon, BrainCircuitIcon, UsersIcon, TrophyIcon, MicVocalIcon, MessageSquareIcon, UserCircleIcon, LogOutIcon } from './components/Icons';
 
 const App: React.FC = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
 
 const MainApp: React.FC = () => {
   const { theme } = useTheme();
+  const { isPasswordRecovery } = useAuth();
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -35,6 +37,10 @@ const MainApp: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  if (isPasswordRecovery) {
+    return <PasswordReset />;
+  }
 
   return (
     <div className="min-h-screen font-sans text-gray-800 bg-gray-50 dark:bg-gray-900 dark:text-gray-200">
